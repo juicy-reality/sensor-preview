@@ -195,7 +195,7 @@ public class Renderer implements GLSurfaceView.Renderer
                         1.0f, 1.0f, 0.0f, 1.0f,
                         1.0f, 1.0f, 0.0f, 1.0f,
 
-                   LessonTwoRenderer     // Top face (cyan)
+                        // Top face (cyan)
                         0.0f, 1.0f, 1.0f, 1.0f,
                         0.0f, 1.0f, 1.0f, 1.0f,
                         0.0f, 1.0f, 1.0f, 1.0f,
@@ -311,7 +311,7 @@ public class Renderer implements GLSurfaceView.Renderer
                         // Attenuate the light based on distance.
                         + "   diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));  \n"
                         // Multiply the color by the illumination level. It will be interpolated across the triangle.
-                        + "   v_Color = a_Color * diffuse;                                       \n"
+                        + "   v_Color = a_Color;                                       \n"
                         // gl_Position is a special variable used to store the final position.
                         // Multiply the vertex by the matrix to get the final point in normalized screen coordinates.
                         + "   gl_Position = u_MVPMatrix * a_Position;                            \n"
@@ -451,23 +451,6 @@ public class Renderer implements GLSurfaceView.Renderer
 
         // Draw some cubes.
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 4.0f, 0.0f, -7.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 1.0f, 0.0f, 0.0f);
-        drawCube();
-
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, -4.0f, 0.0f, -7.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        drawCube();
-
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 0.0f, 4.0f, -7.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
-        drawCube();
-
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 0.0f, -4.0f, -7.0f);
-        drawCube();
 
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -5.0f);
