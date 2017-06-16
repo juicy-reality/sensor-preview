@@ -3,6 +3,7 @@ package com.example.denys.sensorpreview;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
+import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             mGLSurfaceView.setEGLContextClientVersion(2);
 
             // Set the renderer to our demo renderer, defined below.
-            mGLSurfaceView.setRenderer(new Renderer());
+            mGLSurfaceView.setRenderer( new Renderer( (SensorManager)getSystemService(SENSOR_SERVICE) ) );
         }
         else
         {

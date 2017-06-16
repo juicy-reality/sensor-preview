@@ -7,18 +7,26 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.Log;
+import android.hardware.SensorEventListener;
+import android.hardware.Sensor;
 
 /**
  * This class implements our custom renderer. Note that the GL10 parameter passed in is unused for OpenGL ES 2.0
  * renderers -- the static class GLES20 is used instead.
  */
-public class Renderer implements GLSurfaceView.Renderer
+public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
 {
+    private SensorManager mSensorManager;
+    private Sensor mRotationVectorSensor;
+    private final float[] mRotationVectorMatrix = new float[16];
+
     /** Used for debug logs. */
     private static final String TAG = "LessonTwoRenderer";
 
@@ -39,11 +47,6 @@ public class Renderer implements GLSurfaceView.Renderer
 
     /** Allocate storage for the final combined matrix. This will be passed into the shader program. */
     private float[] mMVPMatrix = new float[16];
-
-    /**
-     * Stores a copy of the model matrix specifically for the light position.
-     */
-    private float[] mLightModelMatrix = new float[16];
 
     /** Store our model data in a float buffer. */
     private final FloatBuffer mCubePositions;
@@ -80,16 +83,6 @@ public class Renderer implements GLSurfaceView.Renderer
     /** Size of the normal data in elements. */
     private final int mNormalDataSize = 3;
 
-    /** Used to hold a light centered on the origin in model space. We need a 4th coordinate so we can get translations to work when
-     *  we multiply this by our transformation matrices. */
-    private final float[] mLightPosInModelSpace = new float[] {0.0f, 0.0f, 0.0f, 1.0f};
-
-    /** Used to hold the current position of the light in world space (after transformation via model matrix). */
-    private final float[] mLightPosInWorldSpace = new float[4];
-
-    /** Used to hold the transformed position of the light in eye space (after transformation via modelview matrix) */
-    private final float[] mLightPosInEyeSpace = new float[4];
-
     /** This is a handle to our per-vertex cube shading program. */
     private int mPerVertexProgramHandle;
 
@@ -99,8 +92,16 @@ public class Renderer implements GLSurfaceView.Renderer
     /**
      * Initialize the model data.
      */
-    public Renderer()
+    public Renderer(SensorManager sensorManager)
     {
+        mSensorManager = sensorManager;
+        mRotationVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        mRotationVectorMatrix[0] = 1;
+        mRotationVectorMatrix[4] = 1;
+        mRotationVectorMatrix[8] = 1;
+        mRotationVectorMatrix[12] = 1;
+
         // Define points for a cube.
 
         // X, Y, Z
@@ -281,6 +282,16 @@ public class Renderer implements GLSurfaceView.Renderer
         mCubeNormals.put(cubeNormalData).position(0);
     }
 
+    public void start()
+    {
+        mSensorManager.registerListener(this, mRotationVectorSensor, 10000);
+    }
+
+    public void stop()
+    {
+        mSensorManager.unregisterListener(this);
+    }
+
     protected String getVertexShader()
     {
         // TODO: Explain why we normalize the vectors, explain some of the vector math behind it all. Explain what is eye space.
@@ -440,26 +451,11 @@ public class Renderer implements GLSurfaceView.Renderer
         mColorHandle = GLES20.glGetAttribLocation(mPerVertexProgramHandle, "a_Color");
         mNormalHandle = GLES20.glGetAttribLocation(mPerVertexProgramHandle, "a_Normal");
 
-        // Calculate position of the light. Rotate and then push into the distance.
-        Matrix.setIdentityM(mLightModelMatrix, 0);
-        Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, -5.0f);
-        Matrix.rotateM(mLightModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, 2.0f);
-
-        Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
-        Matrix.multiplyMV(mLightPosInEyeSpace, 0, mViewMatrix, 0, mLightPosInWorldSpace, 0);
-
         // Draw some cubes.
-        Matrix.setIdentityM(mModelMatrix, 0);
-
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -5.0f);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 1.0f, 1.0f, 0.0f);
         drawCube();
-
-        // Draw a point to indicate the light.
-        GLES20.glUseProgram(mPointProgramHandle);
-        drawLight();
     }
 
     /**
@@ -502,35 +498,10 @@ public class Renderer implements GLSurfaceView.Renderer
         // Pass in the combined matrix.
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
-        // Pass in the light position in eye space.
-        GLES20.glUniform3f(mLightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
-
         // Draw the cube.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     }
 
-    /**
-     * Draws a point representing the position of the light.
-     */
-    private void drawLight()
-    {
-        final int pointMVPMatrixHandle = GLES20.glGetUniformLocation(mPointProgramHandle, "u_MVPMatrix");
-        final int pointPositionHandle = GLES20.glGetAttribLocation(mPointProgramHandle, "a_Position");
-
-        // Pass in the position.
-        GLES20.glVertexAttrib3f(pointPositionHandle, mLightPosInModelSpace[0], mLightPosInModelSpace[1], mLightPosInModelSpace[2]);
-
-        // Since we are not using a buffer object, disable vertex arrays for this attribute.
-        GLES20.glDisableVertexAttribArray(pointPositionHandle);
-
-        // Pass in the transformation matrix.
-        Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mLightModelMatrix, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
-        GLES20.glUniformMatrix4fv(pointMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-
-        // Draw the point.
-        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
-    }
 
     /**
      * Helper function to compile a shader.
@@ -624,5 +595,20 @@ public class Renderer implements GLSurfaceView.Renderer
         }
 
         return programHandle;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy)
+    {
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event)
+    {
+        if(event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR )
+        {
+            SensorManager.getRotationMatrixFromVector(mRotationVectorMatrix, event.values);
+        }
     }
 }
