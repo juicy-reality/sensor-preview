@@ -3,6 +3,7 @@ package com.example.denys.sensorpreview;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -454,7 +455,8 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
         // Draw some cubes.
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -5.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 1.0f, 1.0f, 0.0f);
+        Matrix.multiplyMM(mModelMatrix, 0, mRotationVectorMatrix, 0, mModelMatrix, 0);
+
         drawCube();
     }
 
@@ -609,6 +611,7 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
         if(event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR )
         {
             SensorManager.getRotationMatrixFromVector(mRotationVectorMatrix, event.values);
+            //Log.d("Rotation", Arrays.toString(mRotationVectorMatrix));
         }
     }
 }

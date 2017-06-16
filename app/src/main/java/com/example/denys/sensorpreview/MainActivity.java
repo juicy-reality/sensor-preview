@@ -12,6 +12,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Hold a reference to our GLSurfaceView */
     private GLSurfaceView mGLSurfaceView;
+    private Renderer mRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
             mGLSurfaceView.setEGLContextClientVersion(2);
 
             // Set the renderer to our demo renderer, defined below.
-            mGLSurfaceView.setRenderer( new Renderer( (SensorManager)getSystemService(SENSOR_SERVICE) ) );
+            mRenderer =  new Renderer( (SensorManager)getSystemService(SENSOR_SERVICE) );
+            mGLSurfaceView.setRenderer( mRenderer );
         }
         else
         {
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     {
         // The activity must call the GL surface view's onResume() on activity onResume().
         super.onResume();
+        mRenderer.start();
         mGLSurfaceView.onResume();
     }
 
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     {
         // The activity must call the GL surface view's onPause() on activity onPause().
         super.onPause();
+        mRenderer.stop();
         mGLSurfaceView.onPause();
     }
 }
