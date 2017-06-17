@@ -18,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Loader.Init(getResources());
+
         mGLSurfaceView = new GLSurfaceView(this);
 
         // Check if the system supports OpenGL ES 2.0.
