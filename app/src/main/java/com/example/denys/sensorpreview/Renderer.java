@@ -6,9 +6,6 @@ import static android.opengl.GLES20.*;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
-import android.os.SystemClock;
-import android.util.Log;
 import android.hardware.SensorEventListener;
 import android.hardware.Sensor;
 
@@ -23,7 +20,7 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
 
     /** Used for debug logs. */
     private static final String TAG = "Juicy-Reality";
-    Model model;
+    Horse model;
 
     /**
      * Initialize the model data.
@@ -33,7 +30,7 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
         mSensorManager = sensorManager;
         mRotationVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
-        model = new Cube();
+        model = new Horse();
     }
 
     public void start()
@@ -59,6 +56,9 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
         glEnable(GL_DEPTH_TEST);
 
         model.loadShaders();
+        model.initVars();
+        model.initInitialView();
+
     }
 
     @Override

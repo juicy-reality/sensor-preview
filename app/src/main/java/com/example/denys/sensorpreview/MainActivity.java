@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         if (supportsEs2)
         {
             // Request an OpenGL ES 2.0 compatible context.
-            mGLSurfaceView.setEGLContextClientVersion(2);
+            // mGLSurfaceView.setEGLContextClientVersion(2);
 
             // Set the renderer to our demo renderer, defined below.
             mRenderer =  new Renderer( (SensorManager)getSystemService(SENSOR_SERVICE) );

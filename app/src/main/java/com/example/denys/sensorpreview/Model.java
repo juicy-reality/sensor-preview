@@ -5,7 +5,7 @@ package com.example.denys.sensorpreview;
  */
 
 public class Model {
-    protected int mProgId;
+//    protected int mProgId;
     protected float[] mRotationVectorMatrix = new float[16];
 
     public Model()

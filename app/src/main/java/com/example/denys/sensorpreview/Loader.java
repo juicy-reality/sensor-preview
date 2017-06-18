@@ -17,7 +17,7 @@ public class Loader {
     private static final String TAG = "Juicy-Reality";
 
     private static int[] status = new int[1];
-    private static Resources res;
+    public static Resources res;
 
     public static void Init(Resources resources)
     {
@@ -49,6 +49,22 @@ public class Loader {
             String vertexSource = loadFromAssets(vertexFileName);
             String fragmentSource = loadFromAssets( fragmentFileName);
             result = buildProgram(vertexSource, fragmentSource, attrs);
+        }
+        catch(IOException e)
+        {
+            Log.d(TAG, e.getMessage());
+            return 0;
+        }
+
+        return result;
+    }
+    public static int buildProgramFromAssets(String computingFileName, int shaderType,   final String[] attrs)
+    {
+        int result = 0;
+
+        try {
+            String geometryShaderSource = loadFromAssets(computingFileName);
+            result = buildProgram(geometryShaderSource, shaderType);
         }
         catch(IOException e)
         {
@@ -123,6 +139,8 @@ public class Loader {
         return program;
     }
 
+
+
     public static int buildShader(String source, int type)
     {
         int shader = glCreateShader(type);
@@ -135,8 +153,9 @@ public class Loader {
         if (status[0] != GL_TRUE)
         {
             String error = glGetShaderInfoLog(shader);
-            Log.d(TAG, "Error while compiling shader:\n" +error);
+            Log.e(TAG, "Error while compiling shader:\n" +error);
             glDeleteShader(shader);
+//            System.exit(1);
             return 0;
         }
 
