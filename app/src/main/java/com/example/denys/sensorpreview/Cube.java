@@ -2,9 +2,6 @@ package com.example.denys.sensorpreview;
 
 import static android.opengl.GLES20.*;
 import android.opengl.Matrix;
-import android.os.SystemClock;
-import android.util.Log;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -42,9 +39,6 @@ public class Cube extends Model {
 
     /** This will be used to pass in the transformation matrix. */
     private int mMVPMatrixHandle;
-
-    /** This will be used to pass in the modelview matrix. */
-    private int mMVMatrixHandle;
 
     /** This will be used to pass in model position information. */
     private int mPositionHandle;
@@ -249,9 +243,6 @@ public class Cube extends Model {
         // (which currently contains model * view).
         Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 
-        // Pass in the modelview matrix.
-        glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);
-
         // This multiplies the modelview matrix by the projection matrix, and stores the result in the MVP matrix
         // (which now contains model * view * projection).
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
@@ -265,23 +256,23 @@ public class Cube extends Model {
 
     private void repos()
     {
-        // Do a complete rotation every 10 seconds.
-        long time = SystemClock.uptimeMillis() % 10000L;
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
-
         // Set our per-vertex lighting program.
         glUseProgram(mProgId);
 
         // Set program handles for cube drawing.
         mMVPMatrixHandle = glGetUniformLocation(mProgId, "u_MVPMatrix");
-        mMVMatrixHandle = glGetUniformLocation(mProgId, "u_MVMatrix");
         mPositionHandle = glGetAttribLocation(mProgId, "a_Position");
         mColorHandle = glGetAttribLocation(mProgId, "a_Color");
 
         // Draw some cubes.
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -5.0f);
-        Matrix.multiplyMM(mModelMatrix, 0, mRotationVectorMatrix, 0, mModelMatrix, 0);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 1.0f, 1.0f, 0f);
+        Matrix.translateM(mModelMatrix, 0, 0, 0, -5);
+        //Matrix.multiplyMM(mModelMatrix, 0, mRotationVectorMatrix, 0, mModelMatrix, 0);
+
+        final int scr = screenup ? 1 : -1;
+
+        Matrix.rotateM(mModelMatrix, 0, ax, -1.0f, 0f, 0f);
+        Matrix.rotateM(mModelMatrix, 0, ay, 0f, -1.0f, 0f);
+        Matrix.rotateM(mModelMatrix, 0, az, 0f, 0f, -1.0f);
     }
 }

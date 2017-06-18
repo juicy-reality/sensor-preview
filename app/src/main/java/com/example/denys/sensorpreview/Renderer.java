@@ -6,8 +6,6 @@ import static android.opengl.GLES20.*;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
-import android.os.SystemClock;
 import android.util.Log;
 import android.hardware.SensorEventListener;
 import android.hardware.Sensor;
@@ -31,14 +29,14 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
     public Renderer(SensorManager sensorManager)
     {
         mSensorManager = sensorManager;
-        mRotationVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        mRotationVectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
 
         model = new Cube();
     }
 
     public void start()
     {
-        mSensorManager.registerListener(this, mRotationVectorSensor, 10000);
+        mSensorManager.registerListener(this, mRotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     public void stop()
@@ -87,16 +85,17 @@ public class Renderer implements GLSurfaceView.Renderer, SensorEventListener
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event)
+    public void onSensorChanged(final SensorEvent event)
     {
-        if(event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR )
+        if(event.sensor.getType() == Sensor.TYPE_GAME_ROTATION_VECTOR )
         {
-            //Log.d("Rotation", Arrays.toString(mRotationVectorMatrix));
-
             float[] rotationMatrix = new float[16];
             SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
 
-            model.rotate(rotationMatrix);
+            float[] angles = new float[3];
+            SensorManager.getOrientation(rotationMatrix, angles);
+
+            model.rotateAngles(angles);
         }
     }
 }
